@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>專業跑馬仔計分器 V5.5</title>
+    <title>專業跑馬仔計分器 V5.7</title>
     
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#1b5e20">
@@ -108,9 +108,19 @@
         }
         .setup-name-input:focus { outline: 2px solid var(--primary); background: white; }
 
+        /* 歷史紀錄項目優化 */
         .log-item {
             background: white; padding: 12px; margin-bottom: 8px; border-radius: 8px;
             display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--primary);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .log-desc { 
+            font-size: 0.95em; flex: 1; padding-right: 10px; line-height: 1.4; 
+            overflow-wrap: break-word; /* 確保長文字自動換行 */
+        }
+        .undo-btn { 
+            background: #ffebee; color: var(--lose); padding: 6px 12px; border-radius: 6px; 
+            flex: none; width: auto; font-size: 0.85em; font-weight: bold; white-space: nowrap; 
         }
         
         .session-card {
@@ -157,6 +167,9 @@
         .modal-content .btn-row button { font-size: 1.2em; padding: 14px; margin-top: 10px; } 
         
         textarea { width: 100%; height: 100px; margin-top: 10px; font-family: monospace; font-size: 10px; }
+
+        /* 隱藏元素用 */
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
@@ -239,7 +252,8 @@
         <div id="loserSelectRow" class="settings-item">
             <span>出銃者:</span> <select id="loserId"></select>
         </div>
-        <div class="settings-item">
+        <!-- 獎馬數量列，預設會根據「包抄」設定及「類型」決定是否顯示 -->
+        <div id="horseCountRow" class="settings-item">
             <span>獎馬數量:</span> 
             <input type="number" id="horseCount" value="0" min="0" inputmode="numeric" pattern="[0-9]*">
         </div>
@@ -340,7 +354,7 @@
             <div class="log-item">
                 <div class="log-desc">
                     <b>${item.desc}</b><br>
-                    <small>${item.time}</small>
+                    <small style="color: #888; font-size: 0.85em;">${item.time}</small>
                 </div>
                 <button class="undo-btn" onclick="undo(${history.length - 1 - idx})">撤銷</button>
             </div>
@@ -469,7 +483,29 @@
             players.forEach(x => { if(x.id===pid) change[x.id] = amount*3; else change[x.id] = -amount; });
             statUpdates.push({id: pid, type: 'kong', val: 1});
         }
-        applyChange(change, `${p.name} ${name}`, statUpdates);
+        applyChange(change, `${p.emoji} ${p.name} ${name}`, statUpdates);
+    }
+
+    // 更新食糊對話框 UI，處理出銃時隱藏獎馬
+    function updateWinModalUI() {
+        const winType = document.getElementById('winType').value;
+        const horseCountRow = document.getElementById('horseCountRow');
+        const horseCountInput = document.getElementById('horseCount');
+        const loserSelectRow = document.getElementById('loserSelectRow');
+        
+        const isSelf = winType === 'self';
+        const isFullWrap = config.fullWrap;
+
+        // 出銃者選擇列：自摸隱藏，出銃顯示
+        loserSelectRow.style.display = isSelf ? 'none' : 'flex';
+        
+        // 獎馬數量列：自摸顯示，出銃(包抄)顯示，出銃(非包抄)隱藏並設為0
+        if (isSelf || (!isSelf && isFullWrap)) {
+            horseCountRow.style.display = 'flex';
+        } else {
+            horseCountRow.style.display = 'none';
+            horseCountInput.value = 0; // 強制為 0
+        }
     }
 
     function openWinModal(pid) {
@@ -478,14 +514,13 @@
         document.getElementById('winPlayerName').innerText = `${w.emoji} ${w.name}`;
         document.getElementById('loserId').innerHTML = players.filter(x => x.id !== pid).map(x => `<option value="${x.id}">${x.wind} - ${x.name}</option>`).join('');
         document.getElementById('horseCount').value = 0; document.getElementById('isKongExp').checked = false;
-        document.getElementById('winType').value = 'discard'; document.getElementById('loserSelectRow').style.display = 'flex';
+        document.getElementById('winType').value = 'discard'; 
+        
+        updateWinModalUI(); // 初始化顯示狀態
         document.getElementById('winModal').style.display = 'flex';
         
-        // 根據選項隱藏或顯示出銃者
-        document.getElementById('winType').onchange = function() { 
-            const isSelf = this.value === 'self';
-            document.getElementById('loserSelectRow').style.display = isSelf ? 'none' : 'flex'; 
-        };
+        // 綁定 onchange 事件
+        document.getElementById('winType').onchange = updateWinModalUI;
     }
 
     function submitWin() {
@@ -497,35 +532,33 @@
         const change = {}; let statUpdates = [];
         const winner = players.find(x => x.id === currentWinnerId);
         
+        let descText = "";
+
         if(type==='self') { 
             players.forEach(x => { if(x.id===winner.id) change[x.id] = unit*3; else change[x.id] = -unit; }); 
             statUpdates.push({id: winner.id, type: 'win', val: 1});
             statUpdates.push({id: winner.id, type: 'selfDraw', val: 1});
+            
+            descText = `${winner.emoji} ${winner.name} 自摸`;
         } else {
             const lId = parseInt(document.getElementById('loserId').value);
+            const loser = players.find(x => x.id === lId);
             
-            // 核心修正：判斷是否有開啟「包抄」
             const winAmount = config.fullWrap ? (unit * 3) : unit;
             const loseAmount = config.fullWrap ? -(unit * 3) : -unit;
 
             players.forEach(x => { 
-                if(x.id===winner.id) {
-                    change[x.id] = winAmount; // 食糊者贏取對應金額
-                } else if(x.id===lId) {
-                    change[x.id] = loseAmount; // 出銃者支付對應金額
-                } else {
-                    change[x.id] = 0; // 其他兩家唔使俾錢
-                }
+                if(x.id===winner.id) change[x.id] = winAmount; 
+                else if(x.id===lId) change[x.id] = loseAmount; 
+                else change[x.id] = 0; 
             });
             statUpdates.push({id: winner.id, type: 'win', val: 1});
             statUpdates.push({id: lId, type: 'discard', val: 1});
+            
+            descText = `${winner.emoji} ${winner.name} 食 ${loser.emoji} ${loser.name} 出銃`;
+            if (config.fullWrap) descText += ' (包抄)';
         }
         
-        // 動態產生紀錄字句，加入全包/非全包資訊
-        let descText = `${winner.name} ${type==='self'?'自摸':'出銃'}`;
-        if(type === 'discard') {
-             descText += config.fullWrap ? ' (包抄)' : '';
-        }
         if (hCount > 0) descText += ` (${hCount}馬)`;
         if (document.getElementById('isKongExp').checked) descText += ` (槓爆)`;
         
