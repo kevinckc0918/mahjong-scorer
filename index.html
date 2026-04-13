@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>專業跑馬仔計分器 V5.2</title>
+    <title>專業跑馬仔計分器 V5.3</title>
     
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#1b5e20">
@@ -83,20 +83,22 @@
         .settings-item input[type="number"], .settings-item select {
             padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;
         }
-        .settings-item input[type="number"] { width: 60px; text-align: right; }
+        .settings-item input[type="number"] { width: 70px; text-align: right; font-size: 1.1em; }
         
-        /* 全新：玩家設定專用 2x2 格仔排版 */
+        /* 玩家設定專用 2x2 格仔排版 */
         .setup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
         .setup-card {
             background: white; border-radius: 12px; padding: 15px 10px; text-align: center;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-top: 4px solid var(--primary);
         }
         .setup-card .player-label { font-weight: bold; color: var(--primary); font-size: 1.1em; margin-bottom: 8px; }
+        
+        /* 確保 iOS Emoji 置中 */
         .setup-emoji-select {
-            font-size: 3em; /* 超大 Emoji */
+            font-size: 3em; 
             width: 100%; text-align: center; border: none; background: transparent;
-            margin-bottom: 10px; cursor: pointer;
-            /* 隱藏原生下拉箭頭，令外觀更純粹 */
+            margin-bottom: 10px; cursor: pointer; display: block;
+            text-align-last: center; /* iOS 專用置中魔法 */
             -webkit-appearance: none; -moz-appearance: none; appearance: none;
         }
         .setup-name-input {
@@ -135,11 +137,25 @@
         nav div { flex: 1; text-align: center; padding: 14px 0; font-size: 0.9em; color: #777; cursor: pointer; line-height: 1.4; }
         nav div.active { color: var(--primary); font-weight: bold; }
 
+        /* 放大版食糊結算 Dialog */
         #winModal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center;
         }
-        .modal-content { background: white; padding: 20px; border-radius: 15px; width: 85%; max-width: 400px; }
+        .modal-content { 
+            background: white; padding: 25px 20px; border-radius: 15px; 
+            width: 90%; max-width: 420px; /* 加闊 */
+        }
+        .modal-content h3 { font-size: 1.5em; margin-top: 0; text-align: center; border-bottom: 2px solid #eee; padding-bottom: 10px;}
+        .modal-content .settings-item { font-size: 1.15em; padding: 12px 10px; margin-bottom: 15px; } /* 加大行距同字體 */
+        .modal-content select, .modal-content input[type="number"] { 
+            font-size: 1.1em; padding: 10px; border-radius: 8px; 
+        }
+        .modal-content select { width: 150px; }
+        .modal-content input[type="number"] { width: 80px; text-align: center; }
+        .modal-content input[type="checkbox"] { width: 25px; height: 25px; } /* 加大 Checkbox */
+        .modal-content .btn-row button { font-size: 1.2em; padding: 14px; margin-top: 10px; } /* 加大按鈕 */
+        
         textarea { width: 100%; height: 100px; margin-top: 10px; font-family: monospace; font-size: 10px; }
     </style>
 </head>
@@ -151,7 +167,7 @@
     <!-- 1. 主計分視圖 -->
     <div id="view-game" class="view active">
         <div class="cross-layout" id="playerGrid"></div>
-        <button onclick="confirmEndSession()" style="background: #333; color: #fff; width: 100%; padding: 12px; border-radius: 12px; font-size: 1.1em; border:none;">💰 完場結算 (產生戰績及榮譽榜)</button>
+        <button onclick="confirmEndSession()" style="background: #333; color: #fff; width: 100%; padding: 15px; border-radius: 12px; font-size: 1.15em; border:none; margin-top: 10px;">💰 完場結算 (產生戰績及榮譽榜)</button>
     </div>
 
     <!-- 2. 執位視圖 -->
@@ -181,52 +197,60 @@
     <!-- 5. 設定與同步視圖 -->
     <div id="view-settings" class="view">
         <h3>👤 玩家設定</h3>
-        <!-- 新版玩家設定容器 -->
         <div id="nameSettings"></div>
         
         <h3>⚙ 金額設定</h3>
-        <div class="settings-item"><span>底注 ($)</span><input type="number" id="set-base" value="10"></div>
-        <div class="settings-item"><span>中馬 ($)</span><input type="number" id="set-horse" value="10"></div>
-        <div class="settings-item"><span>明槓/加槓 ($)</span><input type="number" id="set-ming" value="5"></div>
-        <div class="settings-item"><span>暗槓 ($)</span><input type="number" id="set-an" value="10"></div>
-        <div class="settings-item"><span>被追 ($)</span><input type="number" id="set-zhui" value="10"></div>
+        <!-- 底注改名為食糊，並加入 inputmode 呼叫 iOS 數字鍵盤 -->
+        <div class="settings-item"><span>食糊 ($)</span><input type="number" id="set-base" value="10" inputmode="numeric" pattern="[0-9]*"></div>
+        <div class="settings-item"><span>中馬 ($)</span><input type="number" id="set-horse" value="10" inputmode="numeric" pattern="[0-9]*"></div>
+        <div class="settings-item"><span>明槓 ($)</span><input type="number" id="set-ming" value="5" inputmode="numeric" pattern="[0-9]*"></div>
+        <div class="settings-item"><span>暗槓 ($)</span><input type="number" id="set-an" value="10" inputmode="numeric" pattern="[0-9]*"></div>
+        <div class="settings-item"><span>加槓 ($)</span><input type="number" id="set-jia" value="5" inputmode="numeric" pattern="[0-9]*"></div>
+        <div class="settings-item"><span>被追 ($)</span><input type="number" id="set-zhui" value="10" inputmode="numeric" pattern="[0-9]*"></div>
+
+        <h3>地獄規矩</h3>
+        <div class="settings-item"><span>槓爆 (雙計)</span><input type="checkbox" id="set-kongExp" style="width: 20px; height: 20px;"></div>
+        <!-- 預設關閉包抄 -->
+        <div class="settings-item"><span>包抄 (出銃者包全場)</span><input type="checkbox" id="set-fullWrap" style="width: 20px; height: 20px;"></div>
 
         <h3>🔄 跨手機同步 / 備份</h3>
         <div style="background:white; padding:15px; border-radius:8px;">
             <p style="font-size:0.8em; color:#666; margin-top:0;">將以下代碼 Copy 並經 WhatsApp Send 俾朋友，佢哋喺下面「匯入」就可以同步所有分數同紀錄。</p>
-            <button onclick="exportData()" class="btn-wa" style="width:100%; margin-bottom:10px;">📤 產生同步代碼並複製</button>
+            <button onclick="exportData()" class="btn-wa" style="width:100%; margin-bottom:10px; padding:12px; font-size:1.05em; border-radius:8px; border:none;">📤 產生同步代碼並複製</button>
             <textarea id="syncDataInput" placeholder="在此貼上朋友俾你嘅代碼..."></textarea>
-            <button onclick="importData()" style="width:100%; margin-top:5px; background:var(--primary); color:white; border:none; padding:10px; border-radius:8px; font-weight:bold;">📥 匯入代碼同步數據</button>
+            <button onclick="importData()" style="width:100%; margin-top:5px; background:var(--primary); color:white; border:none; padding:12px; border-radius:8px; font-size:1.05em; font-weight:bold;">📥 匯入代碼同步數據</button>
         </div>
         
-        <button onclick="saveSettings()" style="background: var(--primary); color: white; width: 100%; margin: 20px 0; padding: 15px; border:none; border-radius:8px; font-size:1.1em;">💾 儲存設定</button>
-        <button onclick="resetScores()" class="btn-danger" style="width: 100%; padding: 15px; border:none; border-radius:8px; margin-bottom:30px; font-weight:bold;">🧨 清空所有分數 (開新局)</button>
+        <button onclick="saveSettings()" style="background: var(--primary); color: white; width: 100%; margin: 20px 0; padding: 15px; border:none; border-radius:8px; font-size:1.15em;">💾 儲存設定</button>
+        <button onclick="resetScores()" class="btn-danger" style="width: 100%; padding: 15px; border:none; border-radius:8px; margin-bottom:30px; font-weight:bold; font-size:1.1em;">🧨 清空所有分數 (開新局)</button>
     </div>
 </div>
 
-<!-- 結算彈窗 -->
+<!-- 結算彈窗 (放大版) -->
 <div id="winModal">
     <div class="modal-content">
-        <h3>食糊結算</h3>
-        <div class="settings-item"><span>勝出者:</span> <b id="winPlayerName"></b></div>
+        <h3>🀄 食糊結算</h3>
+        <div class="settings-item"><span>勝出者:</span> <b id="winPlayerName" style="font-size: 1.2em; color: var(--primary);"></b></div>
         <div class="settings-item">
             <span>類型:</span>
-            <select id="winType" style="padding: 5px;">
+            <select id="winType">
                 <option value="discard">出銃 (包抄)</option>
                 <option value="self">自摸</option>
             </select>
         </div>
         <div id="loserSelectRow" class="settings-item">
-            <span>出銃者:</span> <select id="loserId" style="padding: 5px;"></select>
+            <span>出銃者:</span> <select id="loserId"></select>
         </div>
         <div class="settings-item">
-            <span>獎馬數量:</span> <input type="number" id="horseCount" value="0" min="0">
+            <span>獎馬數量:</span> 
+            <!-- 加入 inputmode 呼叫 iOS 純數字鍵盤 -->
+            <input type="number" id="horseCount" value="0" min="0" inputmode="numeric" pattern="[0-9]*">
         </div>
         <div class="settings-item">
             <span>是否槓爆?</span> <input type="checkbox" id="isKongExp">
         </div>
         <div class="btn-row">
-            <button onclick="closeModal()">取消</button>
+            <button onclick="closeModal()" style="background: #e0e0e0; color: #333;">取消</button>
             <button class="btn-win" onclick="submitWin()">確認結算</button>
         </div>
     </div>
@@ -252,7 +276,9 @@
     
     players.forEach(p => { if(!p.stats) p.stats = { win: 0, selfDraw: 0, discard: 0, kong: 0 }; });
 
-    let config = JSON.parse(localStorage.getItem('mj_config')) || { base: 10, horse: 10, ming: 5, an: 10, jia: 5, zhui: 10, fullWrap: true };
+    // 預設關閉 fullWrap (包抄)
+    let config = JSON.parse(localStorage.getItem('mj_config')) || { base: 10, horse: 10, ming: 5, an: 10, jia: 5, zhui: 10, fullWrap: false, kongExp: false };
+    
     let sessions = JSON.parse(localStorage.getItem('mj_sessions')) || [];
     let history = JSON.parse(localStorage.getItem('mj_history')) || [];
     let currentWinnerId = null;
@@ -300,7 +326,6 @@
         const rightPlayer = getPlayerByWind('東');
         const bottomPlayer = getPlayerByWind('南');
 
-        // 頂: 北 | 左: 西 | 右: 東 | 底: 南
         grid.innerHTML = `
             <div class="cross-top">${makeCard(topPlayer)}</div>
             <div class="cross-mid">
@@ -353,7 +378,7 @@
                     ${s.results.map(r => `<div style="font-size:0.9em;">${r.emoji} ${r.name}: <b style="color:${r.score >=0 ? 'green':'red'}">${r.score >=0 ? '+':''}${r.score}</b></div>`).join('')}
                 </div>
                 ${statsHtml}
-                <button onclick="window.open('whatsapp://send?text=${encodeURIComponent(waText)}')" class="btn-wa" style="width:100%; margin-top:15px; padding:10px; border:none; border-radius:8px;">💬 WhatsApp 分享戰績</button>
+                <button onclick="window.open('whatsapp://send?text=${encodeURIComponent(waText)}')" class="btn-wa" style="width:100%; margin-top:15px; padding:12px; font-size:1.05em; border:none; border-radius:8px;">💬 WhatsApp 分享戰績</button>
             </div>`;
         }).join('');
     }
@@ -458,7 +483,12 @@
         document.getElementById('horseCount').value = 0; document.getElementById('isKongExp').checked = false;
         document.getElementById('winType').value = 'discard'; document.getElementById('loserSelectRow').style.display = 'flex';
         document.getElementById('winModal').style.display = 'flex';
-        document.getElementById('winType').onchange = function() { document.getElementById('loserSelectRow').style.display = this.value === 'self' ? 'none' : 'flex'; };
+        
+        // 根據選項隱藏或顯示出銃者
+        document.getElementById('winType').onchange = function() { 
+            const isSelf = this.value === 'self';
+            document.getElementById('loserSelectRow').style.display = isSelf ? 'none' : 'flex'; 
+        };
     }
 
     function submitWin() {
@@ -476,11 +506,21 @@
             statUpdates.push({id: winner.id, type: 'selfDraw', val: 1});
         } else {
             const lId = parseInt(document.getElementById('loserId').value);
-            players.forEach(x => { if(x.id===winner.id) change[x.id] = unit*3; else if(x.id===lId) change[x.id] = -(unit*3); else change[x.id] = 0; });
+            players.forEach(x => { 
+                if(x.id===winner.id) change[x.id] = unit*3; 
+                else if(x.id===lId) change[x.id] = -(unit*3); 
+                else change[x.id] = 0; 
+            });
             statUpdates.push({id: winner.id, type: 'win', val: 1});
             statUpdates.push({id: lId, type: 'discard', val: 1});
         }
-        applyChange(change, `${winner.name} ${type==='self'?'自摸':'出銃'} (${hCount}馬)`, statUpdates);
+        
+        // 動態產生紀錄字句
+        let descText = `${winner.name} ${type==='self'?'自摸':'出銃'}`;
+        if (hCount > 0) descText += ` (${hCount}馬)`;
+        if (document.getElementById('isKongExp').checked) descText += ` (槓爆)`;
+        
+        applyChange(change, descText, statUpdates);
         closeModal();
     }
 
@@ -516,7 +556,6 @@
     }
 
     function renderSettings() {
-        // 全新 2x2 格仔排版
         document.getElementById('nameSettings').innerHTML = `
             <div class="setup-grid">
                 ${players.map((p, idx) => `
@@ -530,12 +569,16 @@
                 `).join('')}
             </div>
         `;
-        ['base','horse','ming','an','zhui'].forEach(k => document.getElementById(`set-${k}`).value = config[k]);
+        ['base','horse','ming','an','jia','zhui'].forEach(k => document.getElementById(`set-${k}`).value = config[k] || 0);
+        document.getElementById('set-fullWrap').checked = config.fullWrap;
+        document.getElementById('set-kongExp').checked = config.kongExp;
     }
 
     function saveSettings() {
         players.forEach(p => { p.name = document.getElementById(`name-${p.id}`).value; p.emoji = document.getElementById(`emoji-${p.id}`).value; });
-        ['base','horse','ming','an','zhui'].forEach(k => config[k] = parseInt(document.getElementById(`set-${k}`).value));
+        ['base','horse','ming','an','jia','zhui'].forEach(k => config[k] = parseInt(document.getElementById(`set-${k}`).value));
+        config.fullWrap = document.getElementById('set-fullWrap').checked;
+        config.kongExp = document.getElementById('set-kongExp').checked;
         saveData(); renderDashboard(); showView('game');
     }
 
