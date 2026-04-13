@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>專業跑馬仔計分器 V5.3</title>
+    <title>專業跑馬仔計分器 V5.4</title>
     
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#1b5e20">
@@ -144,17 +144,17 @@
         }
         .modal-content { 
             background: white; padding: 25px 20px; border-radius: 15px; 
-            width: 90%; max-width: 420px; /* 加闊 */
+            width: 90%; max-width: 420px; 
         }
         .modal-content h3 { font-size: 1.5em; margin-top: 0; text-align: center; border-bottom: 2px solid #eee; padding-bottom: 10px;}
-        .modal-content .settings-item { font-size: 1.15em; padding: 12px 10px; margin-bottom: 15px; } /* 加大行距同字體 */
+        .modal-content .settings-item { font-size: 1.15em; padding: 12px 10px; margin-bottom: 15px; } 
         .modal-content select, .modal-content input[type="number"] { 
             font-size: 1.1em; padding: 10px; border-radius: 8px; 
         }
         .modal-content select { width: 150px; }
         .modal-content input[type="number"] { width: 80px; text-align: center; }
-        .modal-content input[type="checkbox"] { width: 25px; height: 25px; } /* 加大 Checkbox */
-        .modal-content .btn-row button { font-size: 1.2em; padding: 14px; margin-top: 10px; } /* 加大按鈕 */
+        .modal-content input[type="checkbox"] { width: 25px; height: 25px; } 
+        .modal-content .btn-row button { font-size: 1.2em; padding: 14px; margin-top: 10px; } 
         
         textarea { width: 100%; height: 100px; margin-top: 10px; font-family: monospace; font-size: 10px; }
     </style>
@@ -200,7 +200,6 @@
         <div id="nameSettings"></div>
         
         <h3>⚙ 金額設定</h3>
-        <!-- 底注改名為食糊，並加入 inputmode 呼叫 iOS 數字鍵盤 -->
         <div class="settings-item"><span>食糊 ($)</span><input type="number" id="set-base" value="10" inputmode="numeric" pattern="[0-9]*"></div>
         <div class="settings-item"><span>中馬 ($)</span><input type="number" id="set-horse" value="10" inputmode="numeric" pattern="[0-9]*"></div>
         <div class="settings-item"><span>明槓 ($)</span><input type="number" id="set-ming" value="5" inputmode="numeric" pattern="[0-9]*"></div>
@@ -210,7 +209,6 @@
 
         <h3>地獄規矩</h3>
         <div class="settings-item"><span>槓爆 (雙計)</span><input type="checkbox" id="set-kongExp" style="width: 20px; height: 20px;"></div>
-        <!-- 預設關閉包抄 -->
         <div class="settings-item"><span>包抄 (出銃者包全場)</span><input type="checkbox" id="set-fullWrap" style="width: 20px; height: 20px;"></div>
 
         <h3>🔄 跨手機同步 / 備份</h3>
@@ -226,7 +224,7 @@
     </div>
 </div>
 
-<!-- 結算彈窗 (放大版) -->
+<!-- 結算彈窗 -->
 <div id="winModal">
     <div class="modal-content">
         <h3>🀄 食糊結算</h3>
@@ -234,7 +232,7 @@
         <div class="settings-item">
             <span>類型:</span>
             <select id="winType">
-                <option value="discard">出銃 (包抄)</option>
+                <option value="discard">出銃</option>
                 <option value="self">自摸</option>
             </select>
         </div>
@@ -243,7 +241,6 @@
         </div>
         <div class="settings-item">
             <span>獎馬數量:</span> 
-            <!-- 加入 inputmode 呼叫 iOS 純數字鍵盤 -->
             <input type="number" id="horseCount" value="0" min="0" inputmode="numeric" pattern="[0-9]*">
         </div>
         <div class="settings-item">
@@ -484,7 +481,6 @@
         document.getElementById('winType').value = 'discard'; document.getElementById('loserSelectRow').style.display = 'flex';
         document.getElementById('winModal').style.display = 'flex';
         
-        // 根據選項隱藏或顯示出銃者
         document.getElementById('winType').onchange = function() { 
             const isSelf = this.value === 'self';
             document.getElementById('loserSelectRow').style.display = isSelf ? 'none' : 'flex'; 
@@ -507,16 +503,24 @@
         } else {
             const lId = parseInt(document.getElementById('loserId').value);
             players.forEach(x => { 
-                if(x.id===winner.id) change[x.id] = unit*3; 
-                else if(x.id===lId) change[x.id] = -(unit*3); 
-                else change[x.id] = 0; 
+                if(x.id===winner.id) {
+                    change[x.id] = unit*3; // 贏家永遠收 3 份錢 (包底注同馬錢)
+                } else if(x.id===lId) {
+                    // 如果有開「包抄」，出銃者一個人輸 3 份；如果無開，出銃者只輸 1 份。
+                    change[x.id] = config.fullWrap ? -(unit*3) : -unit; 
+                } else {
+                    change[x.id] = 0; 
+                }
             });
             statUpdates.push({id: winner.id, type: 'win', val: 1});
             statUpdates.push({id: lId, type: 'discard', val: 1});
         }
         
-        // 動態產生紀錄字句
+        // 動態產生紀錄字句，加入全包/非全包資訊
         let descText = `${winner.name} ${type==='self'?'自摸':'出銃'}`;
+        if(type === 'discard') {
+             descText += config.fullWrap ? ' (包抄)' : '';
+        }
         if (hCount > 0) descText += ` (${hCount}馬)`;
         if (document.getElementById('isKongExp').checked) descText += ` (槓爆)`;
         
