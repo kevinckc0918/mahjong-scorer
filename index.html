@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>專業跑馬仔計分器 V5.4</title>
+    <title>專業跑馬仔計分器 V5.5</title>
     
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#1b5e20">
@@ -481,6 +481,7 @@
         document.getElementById('winType').value = 'discard'; document.getElementById('loserSelectRow').style.display = 'flex';
         document.getElementById('winModal').style.display = 'flex';
         
+        // 根據選項隱藏或顯示出銃者
         document.getElementById('winType').onchange = function() { 
             const isSelf = this.value === 'self';
             document.getElementById('loserSelectRow').style.display = isSelf ? 'none' : 'flex'; 
@@ -502,14 +503,18 @@
             statUpdates.push({id: winner.id, type: 'selfDraw', val: 1});
         } else {
             const lId = parseInt(document.getElementById('loserId').value);
+            
+            // 核心修正：判斷是否有開啟「包抄」
+            const winAmount = config.fullWrap ? (unit * 3) : unit;
+            const loseAmount = config.fullWrap ? -(unit * 3) : -unit;
+
             players.forEach(x => { 
                 if(x.id===winner.id) {
-                    change[x.id] = unit*3; // 贏家永遠收 3 份錢 (包底注同馬錢)
+                    change[x.id] = winAmount; // 食糊者贏取對應金額
                 } else if(x.id===lId) {
-                    // 如果有開「包抄」，出銃者一個人輸 3 份；如果無開，出銃者只輸 1 份。
-                    change[x.id] = config.fullWrap ? -(unit*3) : -unit; 
+                    change[x.id] = loseAmount; // 出銃者支付對應金額
                 } else {
-                    change[x.id] = 0; 
+                    change[x.id] = 0; // 其他兩家唔使俾錢
                 }
             });
             statUpdates.push({id: winner.id, type: 'win', val: 1});
