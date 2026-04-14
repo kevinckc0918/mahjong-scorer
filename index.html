@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>跑馬仔計分器 V6.0</title>
+    <title>跑馬仔計分器 V6.1</title>
     
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#1b5e20">
@@ -31,110 +31,109 @@
             user-select: none;
         }
 
+        /* Header 更新：加入 flexbox 容納右上角結算按鈕 */
         header {
             background-color: var(--primary-dark);
             color: white;
-            padding: 12px;
-            text-align: center;
-            font-weight: bold;
+            padding: 12px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             position: sticky; top: 0; z-index: 100;
         }
+        .header-title { font-weight: bold; font-size: 1.1em; }
+        .btn-end-session {
+            background: #e53935; color: white; border: none; padding: 6px 12px;
+            border-radius: 20px; font-weight: bold; font-size: 0.85em; cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .btn-end-session:active { transform: scale(0.95); }
 
         .container { padding: 10px; max-width: 600px; margin: auto; }
-
         .view { display: none; }
         .view.active { display: block; }
 
-        /* 十字型排版 CSS */
+        /* 新版十字型排版 CSS：確保 4 張卡片尺寸一模一樣 */
         .cross-layout {
-            display: flex; flex-direction: column; align-items: center; gap: 6px; margin-bottom: 10px;
+            display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 10px;
         }
-        .cross-top, .cross-bottom { width: 80%; }
-        .cross-mid { display: flex; width: 100%; gap: 8px; justify-content: space-between; }
-        .cross-mid > div { flex: 1; }
+        .cross-row {
+            display: flex; justify-content: center; gap: 10px; width: 100%;
+        }
+        .card-wrapper {
+            width: 48%; /* 統一設定為 48% 闊度 */
+            max-width: 180px;
+        }
 
         .player-card {
-            background: white; border-radius: 12px; padding: 10px; text-align: center;
+            background: white; border-radius: 12px; padding: 12px 10px; text-align: center;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-top: 5px solid var(--primary);
+            height: 100%; box-sizing: border-box; display: flex; flex-direction: column;
         }
 
-        .player-name { font-weight: bold; font-size: 1.05em; color: #666; display: flex; align-items: center; justify-content: center; gap: 5px; }
-        .player-score { font-size: 1.8em; font-weight: bold; margin: 2px 0; }
+        .player-name { font-weight: bold; font-size: 0.95em; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 5px; }
+        .player-score { font-size: 1.8em; font-weight: bold; margin: 5px 0; }
         .score-pos { color: var(--win); }
         .score-neg { color: var(--lose); }
 
-        .btn-row { display: flex; gap: 5px; margin-top: 5px; }
-        button {
-            flex: 1; padding: 6px 4px; border-radius: 8px; border: none;
-            background: #eee; font-weight: bold; cursor: pointer; font-size: 0.85em;
+        /* 正方形大按鈕排版 */
+        .main-actions { display: flex; gap: 8px; margin-top: auto; margin-bottom: 8px; }
+        .sq-btn {
+            flex: 1; aspect-ratio: 1; border-radius: 12px; font-size: 1.3em; font-weight: bold;
+            display: flex; align-items: center; justify-content: center; border: none; cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 0;
         }
-        button:active { filter: brightness(0.9); }
-        .btn-win { background: var(--accent); color: #000; font-size: 1em; padding: 8px;}
+        .sq-btn:active { transform: scale(0.95); }
+        .btn-kong { background: #e8f5e9; color: var(--primary); border: 2px solid var(--primary); }
+        .btn-win { background: var(--accent); color: #000; border: 2px solid #fbc02d; }
+        
+        /* 被追 - 細長按鈕 */
+        .small-btn {
+            width: 100%; padding: 6px; font-size: 0.85em; border-radius: 6px; border: none; font-weight: bold;
+        }
+        .btn-penalty { background: #ffe0b2; color: var(--warning); border: 1px solid #ffb74d; } 
         .btn-danger { background: #ffebee; color: var(--lose); }
         .btn-wa { background: var(--whatsapp); color: white; }
-        .btn-penalty { background: #ffe0b2; color: var(--warning); border: 1px solid #ffb74d;} 
 
         /* 設定頁面常規項目 */
         .settings-item {
             background: white; padding: 15px; margin-bottom: 10px; border-radius: 8px;
             display: flex; justify-content: space-between; align-items: center;
         }
-        .settings-item select {
-            padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;
-        }
         
-        /* 玩家設定專用 2x2 格仔排版 */
         .setup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
         .setup-card {
             background: white; border-radius: 12px; padding: 15px 10px; text-align: center;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-top: 4px solid var(--primary);
         }
         .setup-card .player-label { font-weight: bold; color: var(--primary); font-size: 1.1em; margin-bottom: 8px; }
-        
-        /* 確保 iOS Emoji 置中 */
         .setup-emoji-select {
-            font-size: 3em; 
-            width: 100%; text-align: center; border: none; background: transparent;
-            margin-bottom: 10px; cursor: pointer; display: block;
-            text-align-last: center; /* iOS 專用置中魔法 */
+            font-size: 3em; width: 100%; text-align: center; border: none; background: transparent;
+            margin-bottom: 10px; cursor: pointer; display: block; text-align-last: center; 
             -webkit-appearance: none; -moz-appearance: none; appearance: none;
         }
         .setup-name-input {
             width: 90%; font-size: 1.1em; padding: 8px; text-align: center;
-            border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;
-            background: var(--bg);
+            border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; background: var(--bg);
         }
-        .setup-name-input:focus { outline: 2px solid var(--primary); background: white; }
 
-        /* 歷史紀錄項目優化 */
         .log-item {
             background: white; padding: 12px; margin-bottom: 8px; border-radius: 8px;
             display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--primary);
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
-        .log-desc { 
-            font-size: 0.95em; flex: 1; padding-right: 10px; line-height: 1.4; 
-            overflow-wrap: break-word;
-        }
+        .log-desc { font-size: 0.95em; flex: 1; padding-right: 10px; line-height: 1.4; overflow-wrap: break-word; }
         .undo-btn { 
             background: #ffebee; color: var(--lose); padding: 6px 12px; border-radius: 6px; 
-            flex: none; width: auto; font-size: 0.85em; font-weight: bold; white-space: nowrap; 
-            align-self: stretch; display: flex; align-items: center; justify-content: center;
+            flex: none; width: auto; font-size: 0.85em; font-weight: bold; white-space: nowrap; border:none;
         }
-        .change-badge {
-            display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.85em; 
-            margin-right: 5px; margin-top: 5px; background: #f0f0f0; font-weight: bold;
-        }
+        .change-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.85em; margin-right: 5px; margin-top: 5px; background: #f0f0f0; font-weight: bold; }
         
         .session-card {
-            background: white; border-radius: 12px; padding: 15px; margin-bottom: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1); position: relative;
+            background: white; border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        .stats-box {
-            background: #fdfbf7; border: 1px dashed #ccc; border-radius: 8px;
-            padding: 10px; margin-top: 15px; font-size: 0.85em; color: #555; line-height: 1.6;
-        }
+        .stats-box { background: #fdfbf7; border: 1px dashed #ccc; border-radius: 8px; padding: 10px; margin-top: 15px; font-size: 0.85em; color: #555; line-height: 1.6; }
 
         .tile-grid { display: flex; justify-content: center; gap: 15px; margin: 30px 0; }
         .mahjong-tile {
@@ -151,28 +150,35 @@
         nav div { flex: 1; text-align: center; padding: 14px 0; font-size: 0.9em; color: #777; cursor: pointer; line-height: 1.4; }
         nav div.active { color: var(--primary); font-weight: bold; }
 
-        /* 放大版食糊結算 Dialog */
-        #winModal {
+        /* 通用彈窗 Modal CSS */
+        .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center;
         }
         .modal-content { 
-            background: white; padding: 25px 20px; border-radius: 15px; 
-            width: 90%; max-width: 420px; 
+            background: white; padding: 25px 20px; border-radius: 15px; width: 90%; max-width: 420px; 
         }
         .modal-content h3 { font-size: 1.5em; margin-top: 0; text-align: center; border-bottom: 2px solid #eee; padding-bottom: 10px;}
-        .modal-content .settings-item { font-size: 1.15em; padding: 12px 10px; margin-bottom: 15px; } 
-        .modal-content select { font-size: 1.1em; padding: 10px; border-radius: 8px; width: 150px;}
-        .modal-content input[type="checkbox"] { width: 25px; height: 25px; } 
-        .modal-content .btn-row button { font-size: 1.2em; padding: 14px; margin-top: 10px; } 
+        
+        /* 食糊彈窗內元素 */
+        #winModal .settings-item { font-size: 1.15em; padding: 12px 10px; margin-bottom: 15px; } 
+        #winModal select { font-size: 1.1em; padding: 10px; border-radius: 8px; width: 150px; border: 1px solid #ddd;}
+        #winModal input[type="checkbox"] { width: 25px; height: 25px; } 
+        .btn-row button { font-size: 1.2em; padding: 14px; margin-top: 10px; font-weight:bold; border-radius: 8px; border: none;} 
 
-        /* 通用 +/- 按鈕樣式 (獎馬、設定通用) */
+        /* 開槓彈窗內按鈕 */
+        .btn-kong-opt {
+            width: 100%; padding: 18px; font-size: 1.3em; background: #f5f5f5; border: 2px solid var(--primary);
+            color: var(--primary); border-radius: 12px; margin-bottom: 12px; font-weight: bold; cursor: pointer;
+        }
+        .btn-kong-opt:active { background: var(--primary); color: white; }
+
+        /* 通用 +/- 按鈕樣式 */
         .stepper { display: flex; align-items: center; gap: 15px; }
         .stepper button { 
             flex: 0 0 40px; width: 40px; height: 40px; border-radius: 20px; 
             background: var(--primary); color: white; font-size: 1.5em; 
-            padding: 0; display: flex; align-items: center; justify-content: center;
-            margin: 0; border: none;
+            padding: 0; display: flex; align-items: center; justify-content: center; margin: 0; border: none; cursor:pointer;
         }
         .stepper button:active { background: var(--primary-dark); }
         .stepper span { font-size: 1.4em; font-weight: bold; min-width: 40px; text-align: center; display: inline-block; }
@@ -182,13 +188,16 @@
 </head>
 <body>
 
-<header id="headerTitle">跑馬仔專業計分器</header>
+<header>
+    <div class="header-title">跑馬仔計分器</div>
+    <button class="btn-end-session" onclick="confirmEndSession()">完場結算</button>
+</header>
 
 <div class="container">
     <!-- 1. 主計分視圖 -->
     <div id="view-game" class="view active">
+        <!-- 統一 48% 闊度嘅十字型排版 -->
         <div class="cross-layout" id="playerGrid"></div>
-        <button onclick="confirmEndSession()" style="background: #333; color: #fff; width: 100%; padding: 15px; border-radius: 12px; font-size: 1.15em; border:none; margin-top: 10px;">💰 完場結算 (產生戰績及榮譽榜)</button>
     </div>
 
     <!-- 2. 執位視圖 -->
@@ -221,61 +230,29 @@
         <div id="nameSettings"></div>
         
         <h3>⚙ 金額設定</h3>
-        
-        <!-- 金額設定全部轉為 Stepper (+/- 5 蚊) -->
         <div class="settings-item">
             <span>食糊 ($)</span>
-            <div class="stepper">
-                <button type="button" onclick="adjustSetting('base', -5)">−</button>
-                <span id="display-base">10</span>
-                <button type="button" onclick="adjustSetting('base', 5)">＋</button>
-                <input type="hidden" id="set-base" value="10">
-            </div>
+            <div class="stepper"><button type="button" onclick="adjustSetting('base', -5)">−</button><span id="display-base">10</span><button type="button" onclick="adjustSetting('base', 5)">＋</button><input type="hidden" id="set-base" value="10"></div>
         </div>
         <div class="settings-item">
             <span>中馬 ($)</span>
-            <div class="stepper">
-                <button type="button" onclick="adjustSetting('horse', -5)">−</button>
-                <span id="display-horse">10</span>
-                <button type="button" onclick="adjustSetting('horse', 5)">＋</button>
-                <input type="hidden" id="set-horse" value="10">
-            </div>
+            <div class="stepper"><button type="button" onclick="adjustSetting('horse', -5)">−</button><span id="display-horse">10</span><button type="button" onclick="adjustSetting('horse', 5)">＋</button><input type="hidden" id="set-horse" value="10"></div>
         </div>
         <div class="settings-item">
             <span>明槓 ($)</span>
-            <div class="stepper">
-                <button type="button" onclick="adjustSetting('ming', -5)">−</button>
-                <span id="display-ming">5</span>
-                <button type="button" onclick="adjustSetting('ming', 5)">＋</button>
-                <input type="hidden" id="set-ming" value="5">
-            </div>
+            <div class="stepper"><button type="button" onclick="adjustSetting('ming', -5)">−</button><span id="display-ming">5</span><button type="button" onclick="adjustSetting('ming', 5)">＋</button><input type="hidden" id="set-ming" value="5"></div>
         </div>
         <div class="settings-item">
             <span>暗槓 ($)</span>
-            <div class="stepper">
-                <button type="button" onclick="adjustSetting('an', -5)">−</button>
-                <span id="display-an">10</span>
-                <button type="button" onclick="adjustSetting('an', 5)">＋</button>
-                <input type="hidden" id="set-an" value="10">
-            </div>
+            <div class="stepper"><button type="button" onclick="adjustSetting('an', -5)">−</button><span id="display-an">10</span><button type="button" onclick="adjustSetting('an', 5)">＋</button><input type="hidden" id="set-an" value="10"></div>
         </div>
         <div class="settings-item">
             <span>加槓 ($)</span>
-            <div class="stepper">
-                <button type="button" onclick="adjustSetting('jia', -5)">−</button>
-                <span id="display-jia">5</span>
-                <button type="button" onclick="adjustSetting('jia', 5)">＋</button>
-                <input type="hidden" id="set-jia" value="5">
-            </div>
+            <div class="stepper"><button type="button" onclick="adjustSetting('jia', -5)">−</button><span id="display-jia">5</span><button type="button" onclick="adjustSetting('jia', 5)">＋</button><input type="hidden" id="set-jia" value="5"></div>
         </div>
         <div class="settings-item">
             <span>被追 ($)</span>
-            <div class="stepper">
-                <button type="button" onclick="adjustSetting('zhui', -5)">−</button>
-                <span id="display-zhui">10</span>
-                <button type="button" onclick="adjustSetting('zhui', 5)">＋</button>
-                <input type="hidden" id="set-zhui" value="10">
-            </div>
+            <div class="stepper"><button type="button" onclick="adjustSetting('zhui', -5)">−</button><span id="display-zhui">10</span><button type="button" onclick="adjustSetting('zhui', 5)">＋</button><input type="hidden" id="set-zhui" value="10"></div>
         </div>
 
         <h3>地獄規矩</h3>
@@ -295,8 +272,8 @@
     </div>
 </div>
 
-<!-- 結算彈窗 -->
-<div id="winModal">
+<!-- 食糊結算彈窗 -->
+<div id="winModal" class="modal-overlay">
     <div class="modal-content">
         <h3>🀄 食糊結算</h3>
         <div class="settings-item"><span>勝出者:</span> <b id="winPlayerName" style="font-size: 1.2em; color: var(--primary);"></b></div>
@@ -310,7 +287,6 @@
         <div id="loserSelectRow" class="settings-item">
             <span>出銃者:</span> <select id="loserId"></select>
         </div>
-        <!-- 獎馬數量：+/- 按鈕設計 -->
         <div id="horseCountRow" class="settings-item">
             <span>獎馬數量:</span> 
             <div class="stepper">
@@ -318,15 +294,32 @@
                 <span id="horseCountDisplay">0</span>
                 <button type="button" onclick="adjustHorse(1)">＋</button>
             </div>
-            <!-- 隱藏嘅 Input 用嚟儲存數值俾系統讀取 -->
             <input type="hidden" id="horseCount" value="0">
         </div>
         <div class="settings-item">
             <span>是否槓爆?</span> <input type="checkbox" id="isKongExp">
         </div>
         <div class="btn-row">
-            <button onclick="closeModal()" style="background: #e0e0e0; color: #333;">取消</button>
-            <button class="btn-win" onclick="submitWin()">確認結算</button>
+            <button onclick="closeModal('winModal')" style="background: #e0e0e0; color: #333;">取消</button>
+            <button class="btn-win" style="color: #000;" onclick="submitWin()">確認結算</button>
+        </div>
+    </div>
+</div>
+
+<!-- 開槓選擇彈窗 -->
+<div id="kongModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3>🀄 開槓選擇</h3>
+        <div class="settings-item" style="justify-content: center; background: transparent; padding: 5px;">
+            <b id="kongPlayerName" style="font-size: 1.3em; color: var(--primary);"></b>
+        </div>
+        <div style="margin-top: 15px;">
+            <button class="btn-kong-opt" onclick="submitKong('an')">暗槓</button>
+            <button class="btn-kong-opt" onclick="submitKong('ming')">明槓</button>
+            <button class="btn-kong-opt" onclick="submitKong('jia')">加槓</button>
+        </div>
+        <div class="btn-row" style="margin-top: 5px;">
+            <button onclick="closeModal('kongModal')" style="background: #e0e0e0; color: #333; padding: 15px; font-size: 1.1em;">取消</button>
         </div>
     </div>
 </div>
@@ -356,6 +349,7 @@
     let sessions = JSON.parse(localStorage.getItem('mj_sessions')) || [];
     let history = JSON.parse(localStorage.getItem('mj_history')) || [];
     let currentWinnerId = null;
+    let currentKongPlayerId = null;
     let shuffledWinds = [];
     let pickingIndex = 0;
     let isShuffling = false;
@@ -375,19 +369,22 @@
         if(viewName === 'history') renderHistory();
     }
 
+    // --- 十字型排版：確保 4 張卡片尺寸一致 ---
     function renderDashboard() {
         const grid = document.getElementById('playerGrid');
         
         const makeCard = (p) => {
             if(!p) return '';
             return `
-            <div class="player-card">
-                <div class="player-name"><span>${p.emoji}</span> ${p.wind} - ${p.name}</div>
-                <div class="player-score ${p.score >= 0 ? 'score-pos' : 'score-neg'}">${p.score > 0 ? '+' : ''}${p.score}</div>
-                <div class="btn-group">
-                    <div class="btn-row"><button onclick="handleEvent(${p.id}, 'an')">暗槓</button><button onclick="handleEvent(${p.id}, 'ming')">明槓</button></div>
-                    <div class="btn-row"><button onclick="handleEvent(${p.id}, 'jia')">加槓</button><button class="btn-penalty" onclick="handleEvent(${p.id}, 'zhui')">被追</button></div>
-                    <div class="btn-row"><button class="btn-win" style="width:100%; margin-top:5px;" onclick="openWinModal(${p.id})">食糊</button></div>
+            <div class="card-wrapper">
+                <div class="player-card">
+                    <div class="player-name">${p.emoji} ${p.wind} - ${p.name}</div>
+                    <div class="player-score ${p.score >= 0 ? 'score-pos' : 'score-neg'}">${p.score > 0 ? '+' : ''}${p.score}</div>
+                    <div class="main-actions">
+                        <button class="sq-btn btn-kong" onclick="openKongModal(${p.id})">開槓</button>
+                        <button class="sq-btn btn-win" onclick="openWinModal(${p.id})">食糊</button>
+                    </div>
+                    <button class="small-btn btn-penalty" onclick="handleEvent(${p.id}, 'zhui')">被追</button>
                 </div>
             </div>
             `;
@@ -401,12 +398,12 @@
         const bottomPlayer = getPlayerByWind('南');
 
         grid.innerHTML = `
-            <div class="cross-top">${makeCard(topPlayer)}</div>
-            <div class="cross-mid">
-                <div>${makeCard(leftPlayer)}</div>
-                <div>${makeCard(rightPlayer)}</div>
+            <div class="cross-row">${makeCard(topPlayer)}</div>
+            <div class="cross-row">
+                ${makeCard(leftPlayer)}
+                ${makeCard(rightPlayer)}
             </div>
-            <div class="cross-bottom">${makeCard(bottomPlayer)}</div>
+            <div class="cross-row">${makeCard(bottomPlayer)}</div>
         `;
     }
 
@@ -548,6 +545,19 @@
         resetScores(); showView('game');
     }
 
+    // --- 開槓及一般動作處理 ---
+    function openKongModal(pid) {
+        currentKongPlayerId = pid;
+        const w = players.find(x => x.id === pid);
+        document.getElementById('kongPlayerName').innerText = `${w.emoji} ${w.name}`;
+        document.getElementById('kongModal').style.display = 'flex';
+    }
+
+    function submitKong(type) {
+        handleEvent(currentKongPlayerId, type);
+        closeModal('kongModal');
+    }
+
     function handleEvent(pid, type) {
         const change = {}; let statUpdates = [];
         const p = players.find(x => x.id === pid);
@@ -567,24 +577,24 @@
         applyChange(change, `${p.emoji} ${p.name} ${name}`, statUpdates);
     }
 
-    // --- 獎馬 +/- 按鈕功能 ---
+    // --- 獎馬 +/- 按鈕 ---
     function adjustHorse(delta) {
         const input = document.getElementById('horseCount');
         const display = document.getElementById('horseCountDisplay');
         let currentVal = parseInt(input.value) || 0;
         let newVal = currentVal + delta;
-        if (newVal < 0) newVal = 0; // 最少為 0
+        if (newVal < 0) newVal = 0; 
         input.value = newVal;
         display.innerText = newVal;
     }
 
-    // --- 設定頁面 金額 +/- 按鈕功能 (每次加減 5) ---
+    // --- 設定金額 +/- 按鈕 ---
     function adjustSetting(key, delta) {
         const input = document.getElementById(`set-${key}`);
         const display = document.getElementById(`display-${key}`);
         let currentVal = parseInt(input.value) || 0;
         let newVal = currentVal + delta;
-        if (newVal < 0) newVal = 0; // 金額最少為 0
+        if (newVal < 0) newVal = 0; 
         input.value = newVal;
         display.innerText = newVal;
     }
@@ -597,10 +607,8 @@
         const isSelf = winType === 'self';
         const isFullWrap = config.fullWrap;
 
-        // 出銃者選擇列：自摸隱藏，出銃顯示
         loserSelectRow.style.display = isSelf ? 'none' : 'flex';
         
-        // 獎馬數量列：自摸顯示，出銃(包抄)顯示，出銃(非包抄)隱藏並設為0
         if (isSelf || (!isSelf && isFullWrap)) {
             horseCountRow.style.display = 'flex';
         } else {
@@ -618,13 +626,11 @@
         
         document.getElementById('horseCount').value = 0; 
         document.getElementById('horseCountDisplay').innerText = "0";
-        
         document.getElementById('isKongExp').checked = false;
         document.getElementById('winType').value = 'discard'; 
         
-        updateWinModalUI(); // 初始化顯示狀態
+        updateWinModalUI(); 
         document.getElementById('winModal').style.display = 'flex';
-        
         document.getElementById('winType').onchange = updateWinModalUI;
     }
 
@@ -636,14 +642,12 @@
         
         const change = {}; let statUpdates = [];
         const winner = players.find(x => x.id === currentWinnerId);
-        
         let descText = "";
 
         if(type==='self') { 
             players.forEach(x => { if(x.id===winner.id) change[x.id] = unit*3; else change[x.id] = -unit; }); 
             statUpdates.push({id: winner.id, type: 'win', val: 1});
             statUpdates.push({id: winner.id, type: 'selfDraw', val: 1});
-            
             descText = `${winner.emoji} ${winner.name} 自摸`;
         } else {
             const lId = parseInt(document.getElementById('loserId').value);
@@ -668,7 +672,7 @@
         if (document.getElementById('isKongExp').checked) descText += ` (槓爆)`;
         
         applyChange(change, descText, statUpdates);
-        closeModal();
+        closeModal('winModal');
     }
 
     function applyChange(change, desc, statUpdates = []) {
@@ -688,7 +692,8 @@
         saveData(); renderDashboard(); renderHistory();
     }
 
-    function closeModal() { document.getElementById('winModal').style.display = 'none'; }
+    // 統一關閉彈窗
+    function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
     
     function resetScores() { 
         players.forEach(p => { p.score = 0; p.stats = { win: 0, selfDraw: 0, discard: 0, kong: 0 }; }); 
@@ -716,14 +721,11 @@
                 `).join('')}
             </div>
         `;
-        
-        // 將金額設定數值載入至 input 及 display span
         ['base','horse','ming','an','jia','zhui'].forEach(k => {
             const val = config[k] || 0;
             document.getElementById(`set-${k}`).value = val;
             document.getElementById(`display-${k}`).innerText = val;
         });
-
         document.getElementById('set-fullWrap').checked = config.fullWrap;
         document.getElementById('set-kongExp').checked = config.kongExp;
     }
