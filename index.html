@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>跑馬仔計分器 V6.1</title>
+    <title>跑馬仔計分器 V6.2</title>
     
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#1b5e20">
@@ -92,7 +92,8 @@
         .small-btn {
             width: 100%; padding: 6px; font-size: 0.85em; border-radius: 6px; border: none; font-weight: bold;
         }
-        .btn-penalty { background: #ffe0b2; color: var(--warning); border: 1px solid #ffb74d; } 
+        /* 更新被追按鈕：黑色字體 */
+        .btn-penalty { background: #ffe0b2; color: #000; border: 1px solid #ffb74d; } 
         .btn-danger { background: #ffebee; color: var(--lose); }
         .btn-wa { background: var(--whatsapp); color: white; }
 
@@ -196,7 +197,6 @@
 <div class="container">
     <!-- 1. 主計分視圖 -->
     <div id="view-game" class="view active">
-        <!-- 統一 48% 闊度嘅十字型排版 -->
         <div class="cross-layout" id="playerGrid"></div>
     </div>
 
@@ -369,7 +369,6 @@
         if(viewName === 'history') renderHistory();
     }
 
-    // --- 十字型排版：確保 4 張卡片尺寸一致 ---
     function renderDashboard() {
         const grid = document.getElementById('playerGrid');
         
@@ -545,7 +544,6 @@
         resetScores(); showView('game');
     }
 
-    // --- 開槓及一般動作處理 ---
     function openKongModal(pid) {
         currentKongPlayerId = pid;
         const w = players.find(x => x.id === pid);
@@ -577,7 +575,6 @@
         applyChange(change, `${p.emoji} ${p.name} ${name}`, statUpdates);
     }
 
-    // --- 獎馬 +/- 按鈕 ---
     function adjustHorse(delta) {
         const input = document.getElementById('horseCount');
         const display = document.getElementById('horseCountDisplay');
@@ -588,7 +585,6 @@
         display.innerText = newVal;
     }
 
-    // --- 設定金額 +/- 按鈕 ---
     function adjustSetting(key, delta) {
         const input = document.getElementById(`set-${key}`);
         const display = document.getElementById(`display-${key}`);
@@ -692,7 +688,6 @@
         saveData(); renderDashboard(); renderHistory();
     }
 
-    // 統一關閉彈窗
     function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
     
     function resetScores() { 
