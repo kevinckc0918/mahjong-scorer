@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>專業跑馬仔計分器 V6.6</title>
+    <title>專業跑馬仔計分器 V6.7</title>
     
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#1b5e20">
@@ -49,16 +49,12 @@
         }
         .btn-end-session:active { transform: scale(0.95); }
 
-        /* 縮減左右預留空間，盡用螢幕 */
         .container { padding: 6px; max-width: 600px; margin: auto; }
         .view { display: none; }
         .view.active { display: block; }
 
-        /* 新版十字型排版：解封闊度限制 */
         .cross-layout { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 10px; }
         .cross-row { display: flex; justify-content: center; gap: 8px; width: 100%; }
-        
-        /* 將 width 設為 49%，並移除 max-width: 180px 限制，改為 240px 防止平板過大但食盡手機螢幕 */
         .card-wrapper { width: 49%; max-width: 240px; }
 
         .player-card {
@@ -68,7 +64,9 @@
         }
 
         .player-name { font-weight: bold; font-size: 0.95em; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 5px; }
-        .player-score { font-size: 1.8em; font-weight: bold; margin: 5px 0; }
+        
+        /* ⭐️ 升級：分數大細提升到 2.5em，變得超級搶眼！ */
+        .player-score { font-size: 2.5em; font-weight: bold; margin: 8px 0; line-height: 1; }
         .score-pos { color: var(--win); }
         .score-neg { color: var(--lose); }
 
