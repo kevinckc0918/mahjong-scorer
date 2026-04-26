@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>專業跑馬仔計分器 V6.7</title>
+    <title>專業跑馬仔計分器 V6.9</title>
     
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#1b5e20">
@@ -31,48 +31,62 @@
             user-select: none;
         }
 
+        /* Header 更新：絕對置中標題，左右兩側按鈕對稱 */
         header {
             background-color: var(--primary-dark);
             color: white;
-            padding: 12px 15px;
+            height: 54px;
+            position: sticky; top: 0; z-index: 100;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .header-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            position: sticky; top: 0; z-index: 100;
+            height: 100%;
+            padding: 0 15px;
+            position: relative;
         }
-        .header-title { font-weight: bold; font-size: 1.1em; }
-        .btn-end-session {
-            background: #e53935; color: white; border: none; padding: 6px 12px;
-            border-radius: 20px; font-weight: bold; font-size: 0.85em; cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        .header-title { 
+            font-weight: bold; 
+            font-size: 1.15em; 
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
         }
-        .btn-end-session:active { transform: scale(0.95); }
+        .btn-header {
+            border: none; padding: 7px 12px; border-radius: 20px; 
+            font-weight: bold; font-size: 0.9em; cursor: pointer; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 2;
+        }
+        .btn-header:active { transform: scale(0.95); }
+        .btn-zhui-header { background: #ffe0b2; color: #000; }
+        .btn-end-header { background: #e53935; color: white; }
 
         .container { padding: 6px; max-width: 600px; margin: auto; }
         .view { display: none; }
         .view.active { display: block; }
 
-        .cross-layout { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 10px; }
+        .cross-layout { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 10px; margin-top: 5px; }
         .cross-row { display: flex; justify-content: center; gap: 8px; width: 100%; }
         .card-wrapper { width: 49%; max-width: 240px; }
 
         .player-card {
-            background: white; border-radius: 12px; padding: 12px 8px; text-align: center;
+            background: white; border-radius: 12px; padding: 15px 10px; text-align: center;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-top: 5px solid var(--primary);
-            height: 100%; box-sizing: border-box; display: flex; flex-direction: column;
+            height: 100%; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center;
         }
 
-        .player-name { font-weight: bold; font-size: 0.95em; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 5px; }
-        
-        /* ⭐️ 升級：分數大細提升到 2.5em，變得超級搶眼！ */
-        .player-score { font-size: 2.5em; font-weight: bold; margin: 8px 0; line-height: 1; }
+        /* ⭐️ 終極升級：玩家名字同分數巨型化 */
+        .player-name { font-weight: bold; font-size: 1.4em; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 5px; }
+        .player-score { font-size: 3.2em; font-weight: bold; margin: 10px 0; line-height: 1; }
         .score-pos { color: var(--win); }
         .score-neg { color: var(--lose); }
 
-        .main-actions { display: flex; gap: 8px; margin-top: auto; margin-bottom: 8px; }
+        .main-actions { display: flex; gap: 8px; margin-top: 10px; }
         .sq-btn {
-            flex: 1; aspect-ratio: 1; border-radius: 12px; font-size: 1.3em; font-weight: bold;
+            flex: 1; aspect-ratio: 1; border-radius: 12px; font-size: 1.4em; font-weight: bold;
             display: flex; align-items: center; justify-content: center; border: none; cursor: pointer;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 0;
         }
@@ -142,9 +156,9 @@
         .emoji-grid-container::-webkit-scrollbar { width: 4px; }
         .emoji-grid-container::-webkit-scrollbar-thumb { background-color: #ddd; border-radius: 2px; }
 
-        #winModal .settings-item { font-size: 1.15em; padding: 12px 10px; margin-bottom: 15px; } 
-        #winModal select { font-size: 1.1em; padding: 10px; border-radius: 8px; width: 150px; border: 1px solid #ddd;}
-        #winModal input[type="checkbox"] { width: 25px; height: 25px; } 
+        .modal-content .settings-item { font-size: 1.15em; padding: 12px 10px; margin-bottom: 15px; } 
+        .modal-content select { font-size: 1.1em; padding: 10px; border-radius: 8px; width: 150px; border: 1px solid #ddd;}
+        .modal-content input[type="checkbox"] { width: 25px; height: 25px; } 
         
         .modal-content .btn-row { display: flex; justify-content: center; gap: 15px; margin-top: 20px; width: 100%; }
         .modal-content .btn-row button { flex: 1; max-width: 160px; font-size: 1.15em; padding: 14px; margin: 0; font-weight: bold; border-radius: 10px; border: none; cursor: pointer; }
@@ -166,13 +180,17 @@
 <body>
 
 <header>
-    <div class="header-title">跑馬仔計分器</div>
-    <button class="btn-end-session" onclick="confirmEndSession()">完場結算</button>
+    <div class="header-content">
+        <button class="btn-header btn-zhui-header" onclick="openZhuiModal()">😰 被追</button>
+        <div class="header-title">跑馬仔計分器</div>
+        <button class="btn-header btn-end-header" onclick="confirmEndSession()">完場結算</button>
+    </div>
 </header>
 
 <div class="container">
     <!-- 1. 主計分視圖 -->
     <div id="view-game" class="view active">
+        <!-- 十字型排版：已移除卡片底部「被追」掣 -->
         <div class="cross-layout" id="playerGrid"></div>
     </div>
 
@@ -249,6 +267,21 @@
             <h4>⚠ 危險區域</h4>
             <button onclick="resetScores()" class="btn-danger" style="width: 100%; padding: 15px; border:none; border-radius:8px; margin-bottom:10px; font-weight:bold; font-size:1.1em; cursor: pointer;">🧨 清空所有分數 (開新局)</button>
             <button onclick="clearSessions()" class="btn-danger" style="width: 100%; padding: 15px; border: 1px solid #d32f2f; background: white; border-radius:8px; font-weight:bold; font-size:1.1em; cursor: pointer;">🗑️ 清除所有歷屆戰績</button>
+        </div>
+    </div>
+</div>
+
+<!-- 新增：被追選擇彈窗 -->
+<div id="zhuiModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3>😰 選擇被追玩家</h3>
+        <div class="settings-item" style="flex-direction: column; align-items: stretch;">
+            <span style="margin-bottom: 10px;">請選擇邊位玩家被追：</span>
+            <select id="zhuiPlayerId" style="width: 100%; font-size: 1.2em; padding: 12px; text-align: center;"></select>
+        </div>
+        <div class="btn-row">
+            <button onclick="closeModal('zhuiModal')" style="background: #e0e0e0; color: #333;">取消</button>
+            <button style="background: #ffe0b2; color: #000;" onclick="submitZhui()">確認</button>
         </div>
     </div>
 </div>
@@ -376,7 +409,6 @@
                         <button class="sq-btn btn-kong" onclick="openKongModal(${p.id})">開槓</button>
                         <button class="sq-btn btn-win" onclick="openWinModal(${p.id})">食糊</button>
                     </div>
-                    <button class="small-btn btn-penalty" onclick="handleEvent(${p.id}, 'zhui')">被追</button>
                 </div>
             </div>
             `;
@@ -535,6 +567,20 @@
     function finishShuffle() {
         isShuffling = false;
         resetScores(); showView('game');
+    }
+
+    /* --- 新增：被追專用 Modal 功能 --- */
+    function openZhuiModal() {
+        document.getElementById('zhuiPlayerId').innerHTML = players.map(x => 
+            `<option value="${x.id}">${x.emoji} ${x.wind} - ${x.name}</option>`
+        ).join('');
+        document.getElementById('zhuiModal').style.display = 'flex';
+    }
+
+    function submitZhui() {
+        const pid = parseInt(document.getElementById('zhuiPlayerId').value);
+        handleEvent(pid, 'zhui');
+        closeModal('zhuiModal');
     }
 
     function openKongModal(pid) {
