@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>專業跑馬仔計分器 V7.0</title>
+    <title>專業跑馬仔計分器 V7.6.2</title>
     
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#1b5e20">
@@ -59,22 +59,25 @@
         .view { display: none; }
         .view.active { display: block; }
 
-        .cross-layout { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 10px; margin-top: 5px; }
+        /* 縮減行距，適應高度較細嘅螢幕 */
+        .cross-layout { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-bottom: 10px; margin-top: 5px; }
         .cross-row { display: flex; justify-content: center; gap: 8px; width: 100%; }
         .card-wrapper { width: 49%; max-width: 240px; }
 
+        /* 縮減卡片內嘅上下 Padding */
         .player-card {
-            background: white; border-radius: 12px; padding: 15px 10px; text-align: center;
+            background: white; border-radius: 12px; padding: 10px; text-align: center;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-top: 5px solid var(--primary);
             height: 100%; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center;
         }
 
-        .player-name { font-weight: bold; font-size: 1.4em; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 5px; }
-        .player-score { font-size: 3.2em; font-weight: bold; margin: 10px 0; line-height: 1; }
+        .player-name { font-weight: bold; font-size: 1.4em; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+        /* 縮減分數嘅 Margin */
+        .player-score { font-size: 3.2em; font-weight: bold; margin: 5px 0; line-height: 1; }
         .score-pos { color: var(--win); }
         .score-neg { color: var(--lose); }
 
-        .main-actions { display: flex; gap: 8px; margin-top: 10px; }
+        .main-actions { display: flex; gap: 8px; margin-top: 6px; }
         .sq-btn {
             flex: 1; aspect-ratio: 1; border-radius: 12px; font-size: 1.4em; font-weight: bold;
             display: flex; align-items: center; justify-content: center; border: none; cursor: pointer;
@@ -83,7 +86,7 @@
         .sq-btn:active { transform: scale(0.95); }
         .btn-kong { background: #e8f5e9; color: var(--primary); border: 2px solid var(--primary); }
         .btn-win { background: var(--accent); color: #000; border: 2px solid #fbc02d; }
-        
+
         .small-btn { width: 100%; padding: 6px; font-size: 0.85em; border-radius: 6px; border: none; font-weight: bold; }
         .btn-danger { background: #ffebee; color: var(--lose); }
         .btn-wa { background: var(--whatsapp); color: white; }
@@ -222,7 +225,6 @@
         </div>
         <div class="settings-item">
             <span>明槓 ($)</span>
-            <!-- 預設改回 $10 -->
             <div class="stepper"><button type="button" onclick="adjustSetting('ming', -5)">−</button><span id="display-ming">10</span><button type="button" onclick="adjustSetting('ming', 5)">＋</button><input type="hidden" id="set-ming" value="10"></div>
         </div>
         <div class="settings-item">
@@ -238,9 +240,10 @@
             <div class="stepper"><button type="button" onclick="adjustSetting('zhui', -5)">−</button><span id="display-zhui">10</span><button type="button" onclick="adjustSetting('zhui', 5)">＋</button><input type="hidden" id="set-zhui" value="10"></div>
         </div>
 
-        <h3>地獄規矩</h3>
+        <h3>地獄規矩與系統</h3>
         <div class="settings-item"><span>槓爆 (雙計)</span><input type="checkbox" id="set-kongExp" style="width: 25px; height: 25px;"></div>
         <div class="settings-item"><span>包抄 (出銃者包全場)</span><input type="checkbox" id="set-fullWrap" style="width: 25px; height: 25px;"></div>
+        <div class="settings-item"><span>🔊 語音廣播</span><input type="checkbox" id="set-voice" style="width: 25px; height: 25px;"></div>
 
         <h3>🔄 跨手機同步 / 備份</h3>
         <div style="background:white; padding:15px; border-radius:8px;">
@@ -338,7 +341,7 @@
     </div>
 </div>
 
-<!-- 新增：明槓選擇出銃者彈窗 -->
+<!-- 明槓選擇出銃者彈窗 -->
 <div id="mingModal" class="modal-overlay">
     <div class="modal-content">
         <h3>😰 選擇明槓出銃者</h3>
@@ -373,8 +376,8 @@
     
     players.forEach(p => { if(!p.stats) p.stats = { win: 0, selfDraw: 0, discard: 0, kong: 0 }; });
 
-    // 預設 config 中，明槓改為預設 10
-    let config = JSON.parse(localStorage.getItem('mj_config')) || { base: 10, horse: 10, ming: 10, an: 10, jia: 5, zhui: 10, fullWrap: false, kongExp: false };
+    let config = JSON.parse(localStorage.getItem('mj_config')) || { base: 10, horse: 10, ming: 10, an: 10, jia: 5, zhui: 10, fullWrap: false, kongExp: false, voiceEnabled: true };
+    if(config.voiceEnabled === undefined) config.voiceEnabled = true;
     
     let sessions = JSON.parse(localStorage.getItem('mj_sessions')) || [];
     let history = JSON.parse(localStorage.getItem('mj_history')) || [];
@@ -385,10 +388,58 @@
     let pickingIndex = 0;
     let isShuffling = false;
 
+    let cantoneseVoice = null;
+    
+    function loadVoices() {
+        if (!('speechSynthesis' in window)) return;
+        const voices = window.speechSynthesis.getVoices();
+        cantoneseVoice = voices.find(v => 
+            v.lang === 'zh-HK' || 
+            v.lang === 'yue-HK' || 
+            v.lang.includes('HK') || 
+            v.name.includes('Hong Kong') || 
+            v.name.includes('Cantonese')
+        );
+    }
+    
+    if ('speechSynthesis' in window && speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = loadVoices;
+    }
+
+    document.addEventListener('click', function unlockAudio() {
+        if(config.voiceEnabled && 'speechSynthesis' in window) {
+            let unlockUtterance = new SpeechSynthesisUtterance('');
+            unlockUtterance.volume = 0; 
+            window.speechSynthesis.speak(unlockUtterance);
+        }
+        document.removeEventListener('click', unlockAudio);
+    }, {once: true});
+
+    // V7.6.1：還原為正常廣播，無切開，無特殊變調
+    function speak(text) {
+        if (!config.voiceEnabled) return;
+        if (!('speechSynthesis' in window)) return;
+        
+        if (!cantoneseVoice) loadVoices();
+        
+        window.speechSynthesis.cancel();
+        
+        const utterance = new SpeechSynthesisUtterance(text);
+        if (cantoneseVoice) {
+            utterance.voice = cantoneseVoice; 
+        } else {
+            utterance.lang = 'zh-HK'; 
+        }
+        utterance.rate = 1.05; 
+        
+        window.speechSynthesis.speak(utterance);
+    }
+
     function init() {
         renderDashboard();
         renderSettings();
         if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+        setTimeout(loadVoices, 500); 
     }
 
     function showView(viewName) {
@@ -594,20 +645,16 @@
         document.getElementById('kongModal').style.display = 'flex';
     }
 
-    // 處理槓牌邏輯
     function submitKong(type) {
         if (type === 'ming') {
-            // 如果係明槓，先閂埋開槓視窗，再彈出選擇出銃者視窗
             closeModal('kongModal');
             openMingModal();
         } else {
-            // 暗槓、加槓照舊
             handleEvent(currentKongPlayerId, type);
             closeModal('kongModal');
         }
     }
 
-    // --- 新增：明槓專用視窗及邏輯 ---
     function openMingModal() {
         const w = players.find(x => x.id === currentKongPlayerId);
         document.getElementById('mingPlayerName').innerText = `${w.emoji} ${w.name}`;
@@ -623,7 +670,6 @@
         const amount = config.ming;
         const change = {};
         
-        // 明槓邏輯：只有出銃者俾錢
         players.forEach(x => { 
             if(x.id === winner.id) change[x.id] = amount; 
             else if(x.id === loser.id) change[x.id] = -amount; 
@@ -634,29 +680,34 @@
         const descText = `${winner.emoji} ${winner.name} 明槓 (${loser.emoji} ${loser.name} 打出)`;
         
         applyChange(change, descText, statUpdates);
+        
+        // V7.6.1：正常廣播
+        speak(`銀牙！${winner.name}，明槓`);
+        
         closeModal('mingModal');
     }
 
-    // 原有嘅暗槓、加槓、被追邏輯
     function handleEvent(pid, type) {
         const change = {}; let statUpdates = [];
         const p = players.find(x => x.id === pid);
-        let amount = 0, name = "";
+        let amount = 0, name = "", speechText = "";
         
         if(type==='zhui') { 
             amount = config.zhui; 
             players.forEach(x => { if(x.id===pid) change[x.id] = -(amount*3); else change[x.id] = amount; }); 
             name = "被追"; 
+            speechText = `${p.name}，被追`;
         } else {
-            // 淨返 an (暗槓), jia (加槓)
-            if(type==='an') { amount = config.an; name = "暗槓"; }
-            else if(type==='jia') { amount = config.jia; name = "加槓"; }
+            // V7.6.1：正常廣播
+            if(type==='an') { amount = config.an; name = "暗槓"; speechText = `銀牙！${p.name}，暗槓`; }
+            else if(type==='jia') { amount = config.jia; name = "加槓"; speechText = `銀牙！${p.name}，加槓`; }
             
-            // 暗槓同加槓都係三家俾錢
             players.forEach(x => { if(x.id===pid) change[x.id] = amount*3; else change[x.id] = -amount; });
             statUpdates.push({id: pid, type: 'kong', val: 1});
         }
+
         applyChange(change, `${p.emoji} ${p.name} ${name}`, statUpdates);
+        speak(speechText);
     }
 
     function adjustHorse(delta) {
@@ -723,12 +774,14 @@
         const change = {}; let statUpdates = [];
         const winner = players.find(x => x.id === currentWinnerId);
         let descText = "";
+        let speechText = "";
 
         if(type==='self') { 
             players.forEach(x => { if(x.id===winner.id) change[x.id] = unit*3; else change[x.id] = -unit; }); 
             statUpdates.push({id: winner.id, type: 'win', val: 1});
             statUpdates.push({id: winner.id, type: 'selfDraw', val: 1});
             descText = `${winner.emoji} ${winner.name} 自摸`;
+            speechText = `${winner.name}，自摸`;
         } else {
             const lId = parseInt(document.getElementById('loserId').value);
             const loser = players.find(x => x.id === lId);
@@ -745,13 +798,22 @@
             statUpdates.push({id: lId, type: 'discard', val: 1});
             
             descText = `${winner.emoji} ${winner.name} 食 ${loser.emoji} ${loser.name} 出銃`;
+            
+            // V7.6.1：正常廣播，無特殊變音
+            speechText = `${winner.name}，食糊`;
+            
             if (config.fullWrap) descText += ' (包抄)';
         }
         
         if (hCount > 0) descText += ` (${hCount}馬)`;
-        if (document.getElementById('isKongExp').checked) descText += ` (槓爆)`;
+        if (document.getElementById('isKongExp').checked) {
+            descText += ` (槓爆)`;
+            speechText += `，槓爆`;
+        }
         
         applyChange(change, descText, statUpdates);
+        
+        speak(speechText);
         closeModal('winModal');
     }
 
@@ -829,11 +891,12 @@
         `;
         ['base','horse','ming','an','jia','zhui'].forEach(k => {
             const val = config[k] || 0;
-            if (document.getElementById(`set-${k}`)) document.getElementById(`set-${k}`).value = val;
-            if (document.getElementById(`display-${k}`)) document.getElementById(`display-${k}`).innerText = val;
+            document.getElementById(`set-${k}`).value = val;
+            document.getElementById(`display-${k}`).innerText = val;
         });
         document.getElementById('set-fullWrap').checked = config.fullWrap;
         document.getElementById('set-kongExp').checked = config.kongExp;
+        document.getElementById('set-voice').checked = config.voiceEnabled;
     }
 
     function saveSettings() {
@@ -844,6 +907,7 @@
         ['base','horse','ming','an','jia','zhui'].forEach(k => config[k] = parseInt(document.getElementById(`set-${k}`).value));
         config.fullWrap = document.getElementById('set-fullWrap').checked;
         config.kongExp = document.getElementById('set-kongExp').checked;
+        config.voiceEnabled = document.getElementById('set-voice').checked;
         saveData(); renderDashboard(); showView('game');
     }
 
